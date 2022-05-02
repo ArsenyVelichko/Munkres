@@ -13,14 +13,14 @@ namespace Munkres {
 		using CostMatrix = Eigen::MatrixX<ValueType>;
 		using Index2DArray = std::vector<Utility::Index2D>;
 
-		void solve(const CostMatrix& costMatrix);
+		void solve(const CostMatrix& costMatrix, bool maximize = false);
 		Index2DArray result() const;
 
 	private:
 		int minDimension() const;
 		bool isNonCovered(int rowIdx, int colIdx) const;
 
-		void preliminaries(const CostMatrix& costMatrix);
+		void preliminaries(const CostMatrix& costMatrix, bool maximize);
 
 		ValueType findMinNonCovered() const;
 

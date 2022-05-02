@@ -7,8 +7,8 @@ template<class ValueType>
 Solver<ValueType>::Solver() : m_colNumber(0), m_rowNumber(0), m_primedPath(1) {}
 
 template<class ValueType>
-void Solver<ValueType>::preliminaries(const Solver::CostMatrix& costMatrix) {
-	m_result = costMatrix;
+void Solver<ValueType>::preliminaries(const Solver::CostMatrix& costMatrix, bool maximize) {
+	m_result = maximize ? costMatrix.maxCoeff() - costMatrix.array() : costMatrix;
 
 	m_colNumber = m_result.cols();
 	m_rowNumber = m_result.rows();
@@ -25,8 +25,8 @@ void Solver<ValueType>::preliminaries(const Solver::CostMatrix& costMatrix) {
 }
 
 template<class ValueType>
-void Solver<ValueType>::solve(const Solver::CostMatrix& costMatrix) {
-	preliminaries(costMatrix);
+void Solver<ValueType>::solve(const Solver::CostMatrix& costMatrix, bool maximize) {
+	preliminaries(costMatrix, maximize);
 
 	int nextStep = 0;
 	const auto& steps = algoSteps();

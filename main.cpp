@@ -14,12 +14,13 @@ int main() {
 
 	for (int i = 0; i < matA.rows(); i++) {
 		for (int j = 0; j < matA.cols(); j++) {
-			matA(i, j) = rand();
+			matA(i, j) = (i + 1) * (j + 1);
 		}
 	}
 
-	std::cout << matA << std::endl;
-	solver.solve(matA);
+	std::cout <<  matA << std::endl;
+	std::cout <<  matA.maxCoeff() - matA.array() << std::endl;
+	solver.solve(matA, true);
 	auto indices = solver.result();
 
 	double sum = 0.0;
