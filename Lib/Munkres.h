@@ -2,7 +2,7 @@
 
 #include <Eigen/Dense>
 
-#include "Utility.h"
+#include "Index2D.h"
 
 namespace Munkres {
 	template<class ValueType>
@@ -11,23 +11,24 @@ namespace Munkres {
 		Solver();
 
 		using CostMatrix = Eigen::MatrixX<ValueType>;
-		using Index2DArray = std::vector<Utility::Index2D>;
 
-		void solve(const CostMatrix& costMatrix, bool maximize = false);
-		Index2DArray result() const;
+		std::vector<Index2D> solve(const CostMatrix& costMatrix, bool maximize = false);
 
 	private:
 		int minDimension() const;
 		bool isNonCovered(int rowIdx, int colIdx) const;
 
 		void preliminaries(const CostMatrix& costMatrix, bool maximize);
+		std::vector<Index2D> result() const;
 
 		ValueType findMinNonCovered() const;
 
-		Utility::Index2D findNonCoveredZero() const;
-		Utility::Index2D findStarredInRow(int rowIdx) const;
-		Utility::Index2D findStarredInCol(int colIdx) const;
-		Utility::Index2D findPrimedInRow(int rowIdx) const;
+		Index2D findNonCoveredZero() const;
+
+		Index2D findStarredInRow(int rowIdx) const;
+		Index2D findPrimedInRow(int rowIdx) const;
+		Index2D findStarredInCol(int colIdx) const;
+
 
 		using Step = int (Solver::*)();
 		static std::vector<Step> algoSteps();
@@ -61,8 +62,8 @@ namespace Munkres {
 		int m_colNumber;
 		int m_rowNumber;
 
-		Index2DArray m_primedPath;
-		Index2DArray m_starredPath;
+		std::vector<Index2D> m_primedPath;
+		std::vector<Index2D> m_starredPath;
 	};
 
 #include "Munkres.tpp"

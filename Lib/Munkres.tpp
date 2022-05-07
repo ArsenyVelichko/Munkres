@@ -1,8 +1,6 @@
 #include <limits>
 #include <algorithm>
 
-#include "Munkres.h"
-
 template<class ValueType>
 Solver<ValueType>::Solver() : m_colNumber(0), m_rowNumber(0), m_primedPath(1) {}
 
@@ -25,7 +23,9 @@ void Solver<ValueType>::preliminaries(const Solver::CostMatrix& costMatrix, bool
 }
 
 template<class ValueType>
-void Solver<ValueType>::solve(const Solver::CostMatrix& costMatrix, bool maximize) {
+std::vector<Index2D> Solver<ValueType>::solve(const Solver::CostMatrix& costMatrix, bool maximize) {
+	if (costMatrix.size() == 0) { return {}; }
+
 	preliminaries(costMatrix, maximize);
 
 	int nextStep = 0;
@@ -34,6 +34,8 @@ void Solver<ValueType>::solve(const Solver::CostMatrix& costMatrix, bool maximiz
 	while (nextStep >= 0) {
 		nextStep = (this->*steps[nextStep])();
 	}
+
+	return result();
 }
 
 template<class ValueType>
@@ -77,27 +79,27 @@ int Solver<ValueType>::step3() {
 		auto idx = findNonCoveredZero();
 		if (!idx.isValid()) { return 5; }
 
-		m_markerMask(idx.rowIdx(), idx.colIdx()) = PrimedZero;
+		m_markerMask(idx.rowIdx, idx.colIdx) = PrimedZero;
 		m_primedPath[0] = idx;
 
-		idx = findStarredInRow(idx.rowIdx());
+		idx = findStarredInRow(idx.rowIdx);
 		if (!idx.isValid()) { return 4; }
 
-		m_coveredCols(idx.colIdx()) = false;
-		m_coveredRows(idx.rowIdx()) = true;
+		m_coveredCols(idx.colIdx) = false;
+		m_coveredRows(idx.rowIdx) = true;
 	}
 }
 
 template<class ValueType>
 int Solver<ValueType>::step4() {
-	Utility::Index2D primedIdx = m_primedPath[0];
+	Index2D primedIdx = m_primedPath[0];
 
 	for (int i = 0; /*i < minDimension()*/; i++) {
-		const auto& starredIdx = findStarredInCol(primedIdx.colIdx());
+		const auto& starredIdx = findStarredInCol(primedIdx.colIdx);
 		if (!starredIdx.isValid()) { break; }
 
 		m_starredPath.push_back(starredIdx);
-		primedIdx = findPrimedInRow(starredIdx.rowIdx());
+		primedIdx = findPrimedInRow(starredIdx.rowIdx);
 		m_primedPath.push_back(primedIdx);
 	}
 
@@ -127,7 +129,7 @@ int Solver<ValueType>::step5() {
 }
 
 template<class ValueType>
-Utility::Index2D Solver<ValueType>::findNonCoveredZero() const {
+Index2D Solver<ValueType>::findNonCoveredZero() const {
 	for (int i = 0; i < m_rowNumber; i++) {
 		for (int j = 0; j < m_colNumber; j++) {
 			if (m_result(i, j) == 0 && isNonCovered(i, j)) {
@@ -153,24 +155,33 @@ ValueType Solver<ValueType>::findMinNonCovered() const {
 }
 
 template<class ValueType>
-Utility::Index2D Solver<ValueType>::findStarredInRow(int rowIdx) const {
-	const auto& row = m_markerMask.row(rowIdx);
-	const auto& localIdx = Utility::findInMatrix(row, StarredZero);
-	return { rowIdx, localIdx.colIdx() };
+Index2D Solver<ValueType>::findStarredInRow(int rowIdx) const {
+	for (int j = 0; j < m_colNumber; j++) {
+		if (m_markerMask(rowIdx, j) == StarredZero) {
+			return { rowIdx, j };
+		}
+	}
+	return {};
 }
 
 template<class ValueType>
-Utility::Index2D Solver<ValueType>::findStarredInCol(int colIdx) const {
-	const auto& col = m_markerMask.col(colIdx);
-	const auto& localIdx = Utility::findInMatrix(col, StarredZero);
-	return { localIdx.rowIdx(), colIdx };
+Index2D Solver<ValueType>::findStarredInCol(int colIdx) const {
+	for (int i = 0; i < m_rowNumber; i++) {
+		if (m_markerMask(i, colIdx) == StarredZero) {
+			return { i, colIdx };
+		}
+	}
+	return {};
 }
 
 template<class ValueType>
-Utility::Index2D Solver<ValueType>::findPrimedInRow(int rowIdx) const {
-	const auto& row = m_markerMask.row(rowIdx);
-	const auto& localIdx = Utility::findInMatrix(row, PrimedZero);
-	return { rowIdx, localIdx.colIdx() };
+Index2D Solver<ValueType>::findPrimedInRow(int rowIdx) const {
+	for (int j = 0; j < m_colNumber; j++) {
+		if (m_markerMask(rowIdx, j) == PrimedZero) {
+			return { rowIdx, j };
+		}
+	}
+	return {};
 }
 
 template<class ValueType>
@@ -188,11 +199,11 @@ int Solver<ValueType>::minDimension() const {
 template<class ValueType>
 void Solver<ValueType>::postprocessPaths() {
 	for (const auto& idx : m_primedPath) {
-		m_markerMask(idx.rowIdx(), idx.colIdx()) = StarredZero;
+		m_markerMask(idx.rowIdx, idx.colIdx) = StarredZero;
 	}
 
 	for (const auto& idx : m_starredPath) {
-		m_markerMask(idx.rowIdx(), idx.colIdx()) = NoMarker;
+		m_markerMask(idx.rowIdx, idx.colIdx) = NoMarker;
 	}
 
 	m_primedPath.resize(1);
@@ -217,8 +228,8 @@ bool Solver<ValueType>::isNonCovered(int rowIdx, int colIdx) const {
 }
 
 template<class ValueType>
-typename Solver<ValueType>::Index2DArray Solver<ValueType>::result() const {
-	Index2DArray starredIndices;
+std::vector<Index2D> Solver<ValueType>::result() const {
+	std::vector<Index2D> starredIndices;
 
 	for (int i = 0; i < m_rowNumber; i++) {
 		for (int j = 0; j < m_colNumber; j++) {
@@ -229,6 +240,3 @@ typename Solver<ValueType>::Index2DArray Solver<ValueType>::result() const {
 	}
 	return starredIndices;
 }
-
-
-

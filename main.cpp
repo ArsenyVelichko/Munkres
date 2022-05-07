@@ -19,13 +19,11 @@ int main() {
 	}
 
 	std::cout <<  matA << std::endl;
-	std::cout <<  matA.maxCoeff() - matA.array() << std::endl;
-	solver.solve(matA, true);
-	auto indices = solver.result();
+	auto indices = solver.solve(matA);
 
 	double sum = 0.0;
 	for (const auto& idx : indices) {
-		sum += matA(idx.rowIdx(), idx.colIdx());
+		sum += matA(idx.rowIdx, idx.colIdx);
 	}
 	std::cout << "Sum: " << sum << std::endl;
 
