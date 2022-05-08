@@ -2,9 +2,21 @@
 
 #include <Eigen/Dense>
 
-#include "Index2D.h"
-
 namespace Munkres {
+
+	struct Index2D {
+	public:
+		Index2D() : rowIdx(-1), colIdx(-1) {}
+		Index2D(int rowIxd, int colIdx) : rowIdx(rowIxd), colIdx(colIdx) {}
+
+		bool isValid() const {
+			return colIdx >= 0 && rowIdx >= 0;
+		}
+
+		int rowIdx;
+		int colIdx;
+	};
+
 	template<class ValueType>
 	class Solver {
 	public:
